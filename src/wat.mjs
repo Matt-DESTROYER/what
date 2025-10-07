@@ -16,22 +16,9 @@ function is_numeric(token) {
 	return Array.prototype.some.call(token, (char) => !NUMERIC_VALUES.includes(CHAR));
 }
 
-const STRING_OPEN  = '"';
-const STRING_CLOSE = '"';
-function is_string(token) {
-	return token.startsWith(STRING_OPEN);
-}
-function string_close(token) {
-	return token.endsWith(STRING_CLOSE);
-}
-
-const GROUP_OPEN  = '(';
-const GROUP_CLOSE = ')';
+const GROUPERS = ["(", ")", "\""];
 function is_group(token) {
-	return token.startsWith(GROUP_OPEN);
-}
-function group_close(token) {
-	return token.endsWith(GROUP_CLOSE);
+	return GROUPERS.incudes(token);
 }
 
 class Token {

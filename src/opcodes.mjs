@@ -5,14 +5,11 @@ const OPCODES = Object.freeze({
 	"loop": 0x03,
 	"if": 0x04,
 	"else": 0x05,
-	// Exception handling proposal
-	/*
 	"try": 0x06,
 	"catch": 0x07,
 	"throw": 0x08,
 	"rethrow": 0x09,
 	"throw_ref": 0x0A,
-	*/
 	"end": 0x0B,
 	"br": 0x0C,
 	"br_if": 0x0D,
@@ -20,29 +17,16 @@ const OPCODES = Object.freeze({
 	"return": 0x0F,
 	"call": 0x10,
 	"call_indirect": 0x11,
-	// Tail calls proposal
 	"return_call": 0x12,
 	"return_call_indirect": 0x13,
-	// Typed function references proposal
-	/*
 	"call_ref": 0x14,
 	"return_call_ref": 0x15,
-	*/
-	// Exception handling proposal
-	/*
 	"delegate": 0x18,
 	"catch_all": 0x19,
-	*/
 	"drop": 0x1A,
 	"select": 0x1B,
-	// Reference types proposal
-	/*
 	"select t": 0x1C,
-	*/
-	// Exception handling proposal
-	/*
 	"try_table": 0x1F,
-	*/
 	"local": Object.freeze({
 		"get": 0x20,
 		"set": 0x21,
@@ -97,7 +81,6 @@ const OPCODES = Object.freeze({
 		"trunc_f64_s": 0xAA,
 		"trunc_f64_u": 0xAB,
 		"reinterpret_f32": 0xBC,
-		// Sign-extension operators extension
 		"extend8_s": 0xC0,
 		"extend16_s": 0xC1,
 	}),
@@ -150,7 +133,6 @@ const OPCODES = Object.freeze({
 		"trunc_f64_s": 0xB0,
 		"trunc_f64_u": 0xB1,
 		"reinterpret_f64": 0xBD,
-		// Sign-extension operators extension
 		"extend8_s": 0xC2,
 		"extend16_s": 0xC3,
 		"extend32_s": 0xC4
@@ -221,8 +203,6 @@ const OPCODES = Object.freeze({
 		"size": 0x3F,
 		"grow": 0x40
 	}),
-	// Reference types proposal
-	/*
 	"table": Object.freeze({
 		"get": 0x25,
 		"set": 0x26
@@ -236,7 +216,6 @@ const OPCODES = Object.freeze({
 		"eq": 0xD5,
 		"br_on_non_null": 0xD6
 	})
-	*/
 });
 
 export { OPCODES as default };
