@@ -18,6 +18,12 @@ impl Arguments {
 	pub fn check_flag(&self, flag: &str) -> bool {
 		self.named_arguments.contains(&flag.to_owned())
 	}
+	pub fn unnamed_arg_count(&self) -> usize {
+		self.unnamed_arguments.len()
+	}
+	pub fn flag_arg_count(&self) -> usize {
+		self.named_arguments.len()
+	}
 }
 
 pub fn get_cli_arguments() -> Arguments {

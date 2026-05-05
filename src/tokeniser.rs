@@ -31,9 +31,11 @@ fn token_type(char: char) -> TokenType {
 		TokenType::Separator
 	} else if char == '$' {
 		TokenType::Identifier
-	} else if char == '{' || char == '"' || char == '\'' {
+	} else if char == '(' || char == ')' {
 		TokenType::Group
-	} else if char.is_ascii_digit() || char == '.' {
+	} else if char.is_ascii_digit() ||
+			char == '.' ||
+			char == '"' || char == '\'' {
 		TokenType::Literal
 	} else if char.is_ascii_alphabetic() {
 		TokenType::Instruction
@@ -90,7 +92,6 @@ pub fn tokenise(buffer: &str) -> Vec<Token> {
 			TokenType::Literal => {
 				if char.is_whitespace() ||
 						char == '(' || char == ')' ||
-						char == '"' || char == '\'' ||
 						char == ',' {
 					push_token(&mut tokens, &accumulator, accumulator_type);
 					accumulator_type = token_type(char);
@@ -99,10 +100,11 @@ pub fn tokenise(buffer: &str) -> Vec<Token> {
 					accumulator.push(char);
 				}
 			},
-			TokenType::Separator |
+			TokenType::Separator => accumulator_type = TokenType::None,
 			TokenType::Group => {
 				push_token(&mut tokens, &accumulator, accumulator_type);
-				accumulator_type = TokenType::None;
+				accumulator_type = token_type(char);
+				accumulator = String::from(char);
 			},
 			TokenType::None => continue
 		}
