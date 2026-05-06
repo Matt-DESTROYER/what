@@ -1,3 +1,6 @@
+mod tokeniser;
+mod opcodes;
+
 pub fn write_wasm_preamble(buffer: &mut Vec<u8>) {
 	// \0asm
 	buffer.extend_from_slice(&[0x00, 0x61, 0x73, 0x6D]);

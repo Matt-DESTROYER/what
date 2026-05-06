@@ -1,10 +1,8 @@
 use std::fs;
 
 mod args;
-mod opcodes;
-mod tokeniser;
 
-mod Leb128;
+mod leb128;
 mod wat2wasm;
 
 fn print_help() {
@@ -37,10 +35,7 @@ fn main() {
 				Err(err) => return eprintln!("Error: {}", err),
 			};
 
-			let tokens = tokeniser::tokenise(&code);
-			for token in tokens {
-				println!("{:?}", token);
-			}
+			println!("{}", code);
 		}
 	}
 }
