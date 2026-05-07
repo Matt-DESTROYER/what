@@ -1,6 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
 	None,
+	Comment,
 	Instruction,
 	Identifier,
 	Literal,
@@ -39,6 +40,8 @@ fn token_type(char: char) -> TokenType {
 		TokenType::Literal
 	} else if char.is_ascii_alphabetic() {
 		TokenType::Instruction
+	} else if char == ';' {
+		TokenType::Comment
 	} else {
 		TokenType::None
 	}
@@ -87,6 +90,27 @@ pub fn tokenise(buffer: &str) -> Vec<Token> {
 		}
 
 		match accumulator_type {
+			// block comments can be nested
+			// TODO: handle nested block comments for complete compliance
+			TokenType::Comment => {
+				if accumulator.len() == 1 {
+					if char != ';' {
+						// it's not a valid comment... should probably error but cbf rn
+
+						accumulator_type = TokenType::None;
+						continue;
+					}
+				} else if accumulator.starts_with("(;") {
+					if accumulator.starts_with(';') && char == ')' {
+						accumulator_type = TokenType::None;
+						continue;
+					}
+				} else if accumulator.starts_with(";;") && char == '\n' {
+					accumulator_type = TokenType::None;
+					continue;
+				}
+				accumulator.push(char);
+			},
 			TokenType::Instruction |
 			TokenType::Identifier |
 			TokenType::Literal => {
@@ -102,6 +126,11 @@ pub fn tokenise(buffer: &str) -> Vec<Token> {
 			},
 			TokenType::Separator => accumulator_type = TokenType::None,
 			TokenType::Group => {
+				if accumulator.starts_with('(') && char == ';' {
+					accumulator_type = TokenType::Comment;
+					accumulator.push(char);
+					continue;
+				}
 				push_token(&mut tokens, &accumulator, accumulator_type);
 				accumulator_type = token_type(char);
 				accumulator = String::from(char);
