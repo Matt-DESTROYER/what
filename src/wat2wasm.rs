@@ -23,14 +23,122 @@ pub fn write_wasm_preamble(buffer: &mut Vec<u8>) {
  * Payload: the contents of the section
  */
 
-enum Expression {
-	Token(tokeniser::Token),
-	Instruction(opcodes::Opcode),
-	Expression(Box<Expression>)
+struct Instruction {
+	identifier: String,
+	parameters: Vec<tokeniser::Literal>
 }
 
-fn parse_tokens(tokens: &[tokeniser::Token]) -> Result<Vec<Expression>, String> {
-	let mut expressions = Vec::new();
+#[allow(non_camel_case_types)]
+enum WASMType {
+	i32,
+	i64,
+	f32,
+	f64
+}
+
+struct Variable {
+	identifier: String,
+	param_type: WASMType
+}
+
+struct TypeSignature {
+	parameters: Vec<Variable>,
+	return_types: Vec<WASMType>
+}
+
+struct Function {
+	type_signature: TypeSignature,
+	locals: Vec<Variable>,
+	body: Vec<Instruction>
+}
+
+struct Global {
+	identifier: String,
+	global_type: WASMType,
+	mutable: bool,
+	initialisation_expression: Vec<Instruction>
+}
+
+struct Memory {
+	minimum_size: u32,
+	maximum_size: Option<u32>
+}
+
+struct Table {
+	reference_type: WASMType,
+	minimum_size: u32,
+	maximum_size: Option<u32>
+}
+
+enum Entity {
+	Function,
+	Global,
+	Memory,
+	Table
+}
+
+enum ImportDescriptor {
+	Function(TypeSignature),
+	Global { global_type: WASMType, mutable: bool },
+	Memory(Memory),
+	Table(Table)
+}
+
+struct Import {
+	module_name: String,
+	field_name: String,
+	descriptor: ImportDescriptor
+}
+
+struct Export {
+	identifier: String,
+	entity_type: Entity,
+	index: u32
+}
+
+struct DataSegment {
+	bytes: Vec<u8>,
+	index: u32,
+	initialisation: Vec<Instruction>
+}
+
+struct ElementSegment {
+	functions: Vec<String>,
+	index: u32,
+	initialisation: Vec<Instruction>,
+}
+
+struct Module {
+	data_segments: Vec<DataSegment>,
+	element_segments: Vec<ElementSegment>,
+
+	start_function: Option<String>,
+
+	functions: Vec<Function>,
+	globals: Vec<Global>,
+	memory: Option<Memory>,
+	tables: Vec<Table>,
+	imports: Vec<Import>,
+	exports: Vec<Export>
+}
+impl Module {
+	pub fn new() -> Self {
+		Self {
+			data_segments: Vec::new(),
+			element_segments: Vec::new(),
+			start_function: None,
+			functions: Vec::new(),
+			globals: Vec::new(),
+			memory: None,
+			tables: Vec::new(),
+			imports: Vec::new(),
+			exports: Vec::new()
+		}
+	}
+}
+
+fn parse_tokens(tokens: &[tokeniser::Token]) -> Result<Module, String> {
+	let mut module = Module::new();
 
 	let mut i: usize = 0;
 	while i < tokens.len() {
@@ -52,7 +160,9 @@ fn parse_tokens(tokens: &[tokeniser::Token]) -> Result<Vec<Expression>, String> 
 	Ok(expressions)
 }
 
-pub fn group_s_expressions(tokens: &mut Expression) {}
+pub fn group_s_expressions(tokens: &mut Expression) {
+
+}
 
 pub fn compile(source: &str) -> Vec<u8> {
 	let mut buffer = Vec::new();
