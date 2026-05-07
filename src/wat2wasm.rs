@@ -2,9 +2,9 @@ mod tokeniser;
 mod opcodes;
 
 pub fn write_wasm_preamble(buffer: &mut Vec<u8>) {
-	// \0asm
+	// magic "\0asm"
 	buffer.extend_from_slice(&[0x00, 0x61, 0x73, 0x6D]);
-	// Version: 1
+	// Version 1
 	buffer.extend_from_slice(&[0x01, 0x00, 0x00, 0x00]);
 }
 
@@ -22,3 +22,13 @@ pub fn write_wasm_preamble(buffer: &mut Vec<u8>) {
  * Section size: size of section payload in bytes encoded as a ULEB128 u32
  * Payload: the contents of the section
  */
+
+pub fn compile(source: &str) -> Vec<u8> {
+	let mut buffer = Vec::new();
+
+	let tokens = tokeniser::tokenise(source);
+
+	println!("{:?}", tokens);
+
+	buffer
+}

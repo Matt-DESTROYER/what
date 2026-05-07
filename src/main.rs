@@ -32,10 +32,10 @@ fn main() {
 		if let Some(file) = cli_args.get_unnamed().last() {
 			let code = match fs::read_to_string(file) {
 				Ok(code) => code,
-				Err(err) => return eprintln!("Error: {}", err),
+				Err(err) => return eprintln!("Error: {}", err)
 			};
 
-			println!("{}", code);
+			println!("{:#?}", wat2wasm::compile(&code));
 		}
 	}
 }
