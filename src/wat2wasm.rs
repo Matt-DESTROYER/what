@@ -1,13 +1,6 @@
 mod tokeniser;
 mod opcodes;
 
-pub fn write_wasm_preamble(buffer: &mut Vec<u8>) {
-	// magic "\0asm"
-	buffer.extend_from_slice(&[0x00, 0x61, 0x73, 0x6D]);
-	// Version 1
-	buffer.extend_from_slice(&[0x01, 0x00, 0x00, 0x00]);
-}
-
 /*
  * Section IDs:
  *  1. Type section
@@ -108,6 +101,12 @@ struct ElementSegment {
 	initialisation: Vec<Instruction>,
 }
 
+#[derive(Debug)]
+enum AbstractSyntax {
+	Tokens(tokeniser::Token),
+	Group(Vec<AbstractSyntax>)
+}
+
 struct Module {
 	data_segments: Vec<DataSegment>,
 	element_segments: Vec<ElementSegment>,
@@ -135,41 +134,96 @@ impl Module {
 			exports: Vec::new()
 		}
 	}
-}
 
-fn parse_tokens(tokens: &[tokeniser::Token]) -> Result<Module, String> {
-	let mut module = Module::new();
+	fn recursive_ast(tokens: &[tokeniser::Token]) -> Result<AbstractSyntax, String> {
+		let mut ast = AbstractSyntax::Group(Vec::new());
 
-	let mut i: usize = 0;
-	while i < tokens.len() {
-		match &tokens[i] {
-			tokeniser::Token::Instruction(instruction) => {
-				match opcodes::get_opcode(&instruction) {
-					Some(opcode) => expressions.push(Expression::Instruction(opcode)),
-					None => return Err(format!("Unknown instruction: {}", instruction))
+		let mut i: usize = 0;
+		while i < tokens.len() {
+			if let tokeniser::Token::Group(group) = &tokens[i] {
+				if *group == '(' {
+					let group_start = i;
+
+					let mut depth = 1;
+					loop {
+						i += 1;
+						if i >= tokens.len() {
+							break;
+						}
+
+						if let tokeniser::Token::Group(group) = &tokens[i] {
+							if *group == '(' {
+								depth += 1;
+							} else if *group == ')' {
+								depth -= 1;
+
+								if depth == 0 {
+									break;
+								}
+							}
+						}
+					}
+
+					if let tokeniser::Token::Group(group) = &tokens[i] && *group == ')' {
+						let slice = &tokens[group_start + 1..i];
+						if let AbstractSyntax::Group(ast) = &mut ast {
+							match Module::recursive_ast(slice) {
+								Ok(group) => ast.push(group),
+								Err(err) => return Err(err)
+							}
+						}
+					}
+				} else if *group == ')' {
+					return Err("Unmatched bracket".to_owned())
 				}
-			},
-			tokeniser::Token::Group(_) |
-			tokeniser::Token::Identifier(_) => expressions.push(Expression::Token(tokens[i].clone())),
-			_ => todo!("Have not yet implemented this token type")
+			} else if let AbstractSyntax::Group(ast) = &mut ast {
+				ast.push(AbstractSyntax::Tokens(tokens[i].clone()));
+			}
+
+			i += 1;
 		}
 
-		i += 1;
+		Ok(ast)
 	}
 
-	Ok(expressions)
+	fn parse(&mut self, source: &str) -> Result<(), String> {
+		let mut tokens = tokeniser::tokenise(source);
+
+		let ast = Module::recursive_ast(&mut tokens);
+		println!("{:#?}", ast);
+
+		Ok(())
+	}
+
+	pub fn compile(&mut self, source: &str) -> Result<Vec<u8>, String> {
+		let mut bytes = Vec::new();
+
+		match self.parse(source) {
+			Ok(_) => {},
+			Err(err) => return Err(err)
+		}
+
+		Ok(bytes)
+	}
 }
 
-pub fn group_s_expressions(tokens: &mut Expression) {
+fn write_wasm_preamble(buffer: &mut Vec<u8>) {
+	// magic "\0asm"
+	buffer.extend_from_slice(&[0x00, 0x61, 0x73, 0x6D]);
 
+	// Version 1
+	buffer.extend_from_slice(&[0x01, 0x00, 0x00, 0x00]);
 }
 
-pub fn compile(source: &str) -> Vec<u8> {
-	let mut buffer = Vec::new();
+pub fn compile(source: &str) -> Result<Vec<u8>, String> {
+	let mut preamble = Vec::new();
+	write_wasm_preamble(&mut preamble);
 
-	let tokens = tokeniser::tokenise(source);
-
-	println!("{:?}", tokens);
-
-	buffer
+	match Module::new().compile(source) {
+		Ok(bytes) => {
+			preamble.extend(bytes);
+			Ok(preamble)
+		},
+		Err(err) => Err(err)
+	}
 }

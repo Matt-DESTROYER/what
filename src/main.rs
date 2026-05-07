@@ -35,7 +35,14 @@ fn main() {
 				Err(err) => return eprintln!("Error: {}", err)
 			};
 
-			println!("{:#?}", wat2wasm::compile(&code));
+			let bytes = match wat2wasm::compile(&code) {
+				Ok(bytes) => bytes,
+				Err(err) => return eprintln!("Error: {}", err)
+			};
+
+			for byte in bytes {
+				print!("{:x} ", byte);
+			}
 		}
 	}
 }
