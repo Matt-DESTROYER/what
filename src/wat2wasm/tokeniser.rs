@@ -8,7 +8,7 @@ pub enum TokenType {
 	Group,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Token {
 	None,
 	Instruction(String),
@@ -19,7 +19,7 @@ pub enum Token {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Literal {
 	Integer(String),
 	Float(String),

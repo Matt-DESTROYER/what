@@ -23,6 +23,37 @@ pub fn write_wasm_preamble(buffer: &mut Vec<u8>) {
  * Payload: the contents of the section
  */
 
+enum Expression {
+	Token(tokeniser::Token),
+	Instruction(opcodes::Opcode),
+	Expression(Box<Expression>)
+}
+
+fn parse_tokens(tokens: &[tokeniser::Token]) -> Result<Vec<Expression>, String> {
+	let mut expressions = Vec::new();
+
+	let mut i: usize = 0;
+	while i < tokens.len() {
+		match &tokens[i] {
+			tokeniser::Token::Instruction(instruction) => {
+				match opcodes::get_opcode(&instruction) {
+					Some(opcode) => expressions.push(Expression::Instruction(opcode)),
+					None => return Err(format!("Unknown instruction: {}", instruction))
+				}
+			},
+			tokeniser::Token::Group(_) |
+			tokeniser::Token::Identifier(_) => expressions.push(Expression::Token(tokens[i].clone())),
+			_ => todo!("Have not yet implemented this token type")
+		}
+
+		i += 1;
+	}
+
+	Ok(expressions)
+}
+
+pub fn group_s_expressions(tokens: &mut Expression) {}
+
 pub fn compile(source: &str) -> Vec<u8> {
 	let mut buffer = Vec::new();
 
